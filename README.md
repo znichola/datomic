@@ -6,7 +6,13 @@ Database training, a project for 42Nice. Everything is done in a vm, this docume
 
 Query ordering
 ```SQL
-SELECT ... FROM ... JOIN ... ON ... WHERE ... GROUP BY ... HAVING ... ORDER BY
+SELECT ...
+FROM ...
+JOIN ... ON ...
+WHERE ...
+GROUP BY ...
+HAVING ...
+ORDER BY
 ```
 
 Selecting stuff
@@ -41,6 +47,17 @@ GROUP BY d.id;
 -- bug with the thing, you need to round when they ask for average
 ```
 
+Sub quiries
+```SQL
+SELECT c.callsign, c.uptime_pct FROM crew as c
+JOIN 
+(
+	SELECT AVG(uptime_pct) as aup , module_id FROM crew WHERE module_id IS NOT null GROUP BY module_id
+) as avgs 
+ON c.module_id = avgs.module_id
+WHERE avgs.aup < c.uptime_pct
+;
+```
 
 
 ## NOTES on some bugs found
@@ -53,7 +70,7 @@ For each deck, compute the average of cumulative mission hours. Return the deck 
 The sql query entry does not support comments, it should I think:
 
 `03 Group by in psql`
-```
+```SQL
 SELECT * FROM crew as c JOIN deck as d ON c.deck_id = d.id;
 -- SELECT d.name, AVG(c.mission_hours) FROM crew as c JOIN deck as d ON c.deck_id = d.id GROUP BY d.id;
 ```
@@ -61,9 +78,23 @@ return
 ```
 Query error: can't exectue empty query
 ```
-
+```
 SELECT c.callsign, c.uptime_pct FROM crew AS c WHERE .uptime_pct > (
 SELECT AVG(c.uptime_pct) FROM crew AS a
 JOIN module AS m 
 
 );
+```
+
+WHY is this wrong!!
+
+> For each squad, report the number of logged missions, keeping only squads with at least 6 distinct crew appearing in the mission logs.
+```SQL
+SELECT c.squad_id, COUNT(DISTINCT ml.id) AS mission_count 
+FROM mission_log AS ml 
+JOIN crew AS c ON ml.crew_id = c.id
+WHERE c.squad_id IS NOT null
+GROUP BY c.squad_id
+HAVING COUNT(DISTINCT ml.crew_id) >= 6
+;
+```
