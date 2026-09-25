@@ -59,6 +59,31 @@ WHERE avgs.aup < c.uptime_pct
 ;
 ```
 
+Having
+```SQL
+SELECT s.name, COUNT(m.mission_id)
+FROM crew c
+JOIN squad s ON s.id = c.squad_id
+JOIN mission_log m ON c.id = m.crew_id
+GROUP BY s.name
+HAVING COUNT(DISTINCT c.id) >= 6
+ORDER BY COUNT
+```
+
+CTE (common table expression)
+```SQL
+WITH cte AS (
+ SELECT c.id, SUM(m.hours)
+ FROM crew c 
+ LEFT JOIN mission_log m
+ ON c.id = m.crew_id
+ GROUP BY c.id
+)
+
+SELECT * FROM cte
+
+;
+```
 
 ## NOTES on some bugs found
 
